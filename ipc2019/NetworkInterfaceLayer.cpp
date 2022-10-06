@@ -22,6 +22,10 @@ CNILayer::CNILayer(char *pName)
 		fprintf(stderr, "Error in pcap_findalldevs: %s\n", errbuf);
 		alldevs = NULL;
 	}
+
+	OidData = (PPACKET_OID_DATA)malloc(sizeof(PACKET_OID_DATA));
+	OidData->Oid = 0x01010101;
+	OidData->Length = 6;
 }
 
 CNILayer::~CNILayer() {
@@ -42,10 +46,22 @@ BOOL CNILayer::Send(unsigned char* payload, int nlength) {
 	return 1;
 }
 
-BOOL CNILayer::SetAdapter(const int index) {
+UCHAR* CNILayer::SetAdapter(const int index) { //MAC 주소를 전달!
+	CString macaddress;
 	selected = alldevs;
 	for (int i = 0; i < index && selected; i++) {
 		selected = selected->next;
 	}
-	return selected ? TRUE : FALSE;
+	adapter = PacketOpenAdapter(selected->name);
+	PacketRequest(adapter, FALSE, OidData);
+	net_addr.s_addr = net;
+	mask_addr.s_addr = mask; 
+
+	return OidData->Data;
+}
+
+void CNILayer::GetMacAddressList(CStringArray &adapterlist) {
+	for (pcap_if_t* d = alldevs; d; d = d->next) {
+		adapterlist.Add(d->description);
+	}
 }

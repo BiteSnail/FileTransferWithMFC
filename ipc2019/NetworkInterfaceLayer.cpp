@@ -35,7 +35,11 @@ CNILayer::~CNILayer() {
 }
 
 BOOL CNILayer::Receive() {
+	return 1;
+}
 
+BOOL CNILayer::Send(unsigned char* payload, int nlength) {
+	return 1;
 }
 
 BOOL CNILayer::SetAdapter(const int index) {

@@ -17,7 +17,7 @@
 
 class CNILayer : public CBaseLayer { //Thread 구현 
     pcap_if_t* alldevs; //all information of 
-    int inum; //adapter index
+    pcap_if_t* selected; //adapter index
 public:
     CNILayer(char* pName); //생성 시에 pcap_findalldevs로 adapter 정보 저장
     ~CNILayer(); //소멸자

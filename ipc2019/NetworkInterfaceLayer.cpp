@@ -38,20 +38,13 @@ CNILayer::~CNILayer() {
 	}
 }
 
-BOOL CNILayer::Receive() {
-	struct pcap_pkthdr* header;
-	const u_char* pkt_data;
-
-	int result = pcap_next_ex(m_AdapterObject, &header, &pkt_data);
-
-	if (result == 0) {
-		AfxMessageBox("패킷 없음 ㅋㅋ");
+BOOL CNILayer::Receive(unsigned char* pkt) {
+	//endian 변환 필요?
+	if (pkt == nullptr) {
 		return FALSE;
 	}
-	else if (result == 1) {
-		AfxMessageBox("패킷 받았음 ㅋㅋ");
-		return TRUE;
-	}
+	mp_aUpperLayer[0]->Receive(pkt);
+	return TRUE;
 }
 
 BOOL CNILayer::Send(unsigned char* ppayload, int nlength) {
@@ -78,7 +71,9 @@ UCHAR* CNILayer::SetAdapter(const int index) { //MAC 주소를 전달!
 	adapter = PacketOpenAdapter(device->name);
 	PacketRequest(adapter, FALSE, OidData);
 	net_addr.s_addr = net;
-	mask_addr.s_addr = mask; 
+	mask_addr.s_addr = mask;
+
+	AfxBeginThread(ThreadFunction_RECEIVE, this);
 
 	return OidData->Data;
 }
@@ -87,4 +82,25 @@ void CNILayer::GetMacAddressList(CStringArray &adapterlist) {
 	for (pcap_if_t* d = allDevices; d; d = d->next) {
 		adapterlist.Add(d->description);
 	}
+}
+
+UINT CNILayer::ThreadFunction_RECEIVE(LPVOID pParam) {
+	struct pcap_pkthdr* header;
+	const u_char* pkt_data;
+	CNILayer* pNI = (CNILayer*)pParam;
+
+	int result;
+	
+	while (1)
+	{
+		result = pcap_next_ex(pNI->m_AdapterObject, &header, &pkt_data);
+		if (result == 0) {
+			//AfxMessageBox("패킷 없음 ㅋㅋ");
+		}
+		else if (result == 1) {
+			//AfxMessageBox("패킷 받았음 ㅋㅋ");
+			pNI->Receive((u_char*)pkt_data);
+		}
+	}
+	return 0;
 }

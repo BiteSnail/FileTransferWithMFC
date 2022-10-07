@@ -14,9 +14,9 @@
 #include <tchar.h>
 #include <Packet32.h>
 #include <WinSock2.h>
+#include <thread>
 #pragma comment(lib, "packet.lib")
 #pragma comment(lib, "ws2_32.lib")
-
 
 class CNILayer : public CBaseLayer { //Thread 구현 
     pcap_if_t* allDevices; //all information of 
@@ -30,10 +30,12 @@ class CNILayer : public CBaseLayer { //Thread 구현
 public:
     CNILayer(char* pName); //생성 시에 pcap_findalldevs로 adapter 정보 저장
     ~CNILayer(); //소멸자
-    BOOL Receive(); //Packet을 받아서 상위 layer(여기에서는 ethernet layer)로 전달한다. little endian, big endian 변환이 필요?
+    BOOL Receive(unsigned char * pkt); //Packet을 받아서 상위 layer(여기에서는 ethernet layer)로 전달한다. little endian, big endian 변환이 필요?
     BOOL Send(unsigned char* ppayload, int nlength); // little endian, big endian 변환이 필요?
     void GetMacAddressList(CStringArray& adapterlist); //alldevs를 return
     UCHAR* SetAdapter(const int index); //set inum, return value is MAC ADDRESS
+    static UINT ThreadFunction_RECEIVE(LPVOID pParam);
+    static UINT ThreadFunction_SEND(LPVOID pParam);
 };
 
 #endif // !defined(AFX_NETWORKINTERFACELAYER_H)

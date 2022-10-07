@@ -15,12 +15,11 @@ static char THIS_FILE[] = __FILE__;
 //////////////////////////////////////////////////////////////////////
 
 CNILayer::CNILayer(char *pName) 
-	: CBaseLayer(pName), selected(NULL) {
-	char errbuf[PCAP_ERRBUF_SIZE];
-	if (pcap_findalldevs(&alldevs, errbuf) == -1)
+	: CBaseLayer(pName), device(NULL) {
+	if (pcap_findalldevs(&allDevices, errbuf) == -1)
 	{
 		fprintf(stderr, "Error in pcap_findalldevs: %s\n", errbuf);
-		alldevs = NULL;
+		allDevices = NULL;
 	}
 
 	OidData = (PPACKET_OID_DATA)malloc(sizeof(PACKET_OID_DATA));
@@ -29,30 +28,54 @@ CNILayer::CNILayer(char *pName)
 }
 
 CNILayer::~CNILayer() {
-	pcap_if_t* temp = alldevs;
+	pcap_if_t* temp = allDevices;
 
 	while (temp) {
-		temp = alldevs;
-		alldevs = alldevs->next;
+		temp = allDevices;
+		allDevices = allDevices->next;
 		delete(temp);
+		delete(OidData);
 	}
 }
 
 BOOL CNILayer::Receive() {
-	return 1;
+	struct pcap_pkthdr* header;
+	const u_char* pkt_data;
+
+	int result = pcap_next_ex(m_AdapterObject, &header, &pkt_data);
+
+	if (result == 0) {
+		AfxMessageBox("패킷 없음 ㅋㅋ");
+		return FALSE;
+	}
+	else if (result == 1) {
+		AfxMessageBox("패킷 받았음 ㅋㅋ");
+		return TRUE;
+	}
 }
 
-BOOL CNILayer::Send(unsigned char* payload, int nlength) {
-	return 1;
+BOOL CNILayer::Send(unsigned char* ppayload, int nlength) {
+	if (pcap_sendpacket(m_AdapterObject, ppayload, nlength))
+	{
+		AfxMessageBox(_T("패킷 전송 실패"));
+		return FALSE;
+	}
+	return TRUE;
 }
 
 UCHAR* CNILayer::SetAdapter(const int index) { //MAC 주소를 전달!
-	CString macaddress;
-	selected = alldevs;
-	for (int i = 0; i < index && selected; i++) {
-		selected = selected->next;
+	device = allDevices;
+	for (int i = 0; i < index && device; i++) {
+		device = device->next;
 	}
-	adapter = PacketOpenAdapter(selected->name);
+
+	m_AdapterObject = pcap_open_live(device->name, 65536, 0, 1000, errbuf);
+	if (m_AdapterObject == nullptr)
+	{
+		AfxMessageBox(_T("어뎁터 연결 실패!"));
+	}
+
+	adapter = PacketOpenAdapter(device->name);
 	PacketRequest(adapter, FALSE, OidData);
 	net_addr.s_addr = net;
 	mask_addr.s_addr = mask; 
@@ -61,7 +84,7 @@ UCHAR* CNILayer::SetAdapter(const int index) { //MAC 주소를 전달!
 }
 
 void CNILayer::GetMacAddressList(CStringArray &adapterlist) {
-	for (pcap_if_t* d = alldevs; d; d = d->next) {
+	for (pcap_if_t* d = allDevices; d; d = d->next) {
 		adapterlist.Add(d->description);
 	}
 }

@@ -19,11 +19,10 @@
 
 
 class CNILayer : public CBaseLayer { //Thread ±¸Çö 
-    pcap_if_t* alldevs; //all information of 
-    pcap_if_t* selected; //adapter index
-    pcap_t* fp;
+    pcap_if_t* allDevices; //all information of 
+    pcap_if_t* device; //adapter index
+    pcap_t* m_AdapterObject;
     char errbuf[PCAP_ERRBUF_SIZE];
-    unsigned char packet[1500];
     bpf_u_int32 net, mask;
     struct in_addr net_addr, mask_addr;
     LPADAPTER adapter = NULL;

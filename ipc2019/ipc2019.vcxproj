@@ -76,8 +76,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Programming\FileTransferWithMFC\WpdPack\Include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Programming\FileTransferWithMFC\WpdPack\Lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(LocalDebuggerWorkingDirectory)WpdPack\Include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(LocalDebuggerWorkingDirectory)WpdPack\Lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -193,6 +193,7 @@
     <ClInclude Include="ipc2019.h" />
     <ClInclude Include="ipc2019Dlg.h" />
     <ClInclude Include="LayerManager.h" />
+    <ClInclude Include="NetworkInterfaceLayer.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
@@ -207,6 +208,7 @@
     <ClCompile Include="ipc2019.cpp" />
     <ClCompile Include="ipc2019Dlg.cpp" />
     <ClCompile Include="LayerManager.cpp" />
+    <ClCompile Include="NetworkInterfaceLayer.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

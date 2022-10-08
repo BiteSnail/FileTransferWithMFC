@@ -22,9 +22,10 @@ class CNILayer : public CBaseLayer { //Thread ±¸Çö
     pcap_if_t* allDevices; //all information of 
     pcap_if_t* device; //adapter index
     pcap_t* m_AdapterObject;
+    UCHAR data[1500];
     char errbuf[PCAP_ERRBUF_SIZE];
     bpf_u_int32 net, mask;
-    struct in_addr net_addr, mask_addr;
+    UCHAR macAddress[6];
     LPADAPTER adapter = NULL;
     PPACKET_OID_DATA OidData;
 public:

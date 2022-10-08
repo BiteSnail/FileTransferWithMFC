@@ -43,17 +43,7 @@ BOOL CNILayer::Receive(unsigned char* pkt) {
 	if (pkt == nullptr) {
 		return FALSE;
 	}
-	int nlength = ETHER_HEADER_SIZE + ETHER_MAX_DATA_SIZE;
-	unsigned char* ppayload = new unsigned char[nlength + 1];
-
-	// 정해진 Frame의 길이만큼 파일의 내용(상대 프로세스에게 전송 받은 Ethernet Frame)을
-	// 읽어와서 ppayload를 결정한다.
-	
-	memcpy(ppayload, pkt, nlength);
-	ppayload[nlength] = '\0';
-
-	// Ethernet 계층으로 파일에서 가져온 Frame을 넘겨준다. 
-	if (!(mp_aUpperLayer[0]->Receive(ppayload))) { // 넘겨주지 못했다면 FALSE
+	if (!(mp_aUpperLayer[0]->Receive(pkt))) { // 넘겨주지 못했다면 FALSE
 		return FALSE;
 	}
 	
@@ -83,12 +73,12 @@ UCHAR* CNILayer::SetAdapter(const int index) { //MAC 주소를 전달!
 
 	adapter = PacketOpenAdapter(device->name);
 	PacketRequest(adapter, FALSE, OidData);
-	net_addr.s_addr = net;
-	mask_addr.s_addr = mask;
 
+	memcpy(macAddress, (OidData->Data), 6);
+	PacketCloseAdapter(adapter);
 	AfxBeginThread(ThreadFunction_RECEIVE, this);
 
-	return OidData->Data;
+	return macAddress;
 }
 
 void CNILayer::GetMacAddressList(CStringArray &adapterlist) {
@@ -102,17 +92,17 @@ UINT CNILayer::ThreadFunction_RECEIVE(LPVOID pParam) {
 	const u_char* pkt_data;
 	CNILayer* pNI = (CNILayer*)pParam;
 
-	int result;
+	int result=1;
 	
-	while (1)
+	while (result = pcap_next_ex(pNI->m_AdapterObject, &header, &pkt_data)  >=0)
 	{
-		result = pcap_next_ex(pNI->m_AdapterObject, &header, &pkt_data);
 		if (result == 0) {
 			//AfxMessageBox("패킷 없음 ㅋㅋ");
 		}
 		else if (result == 1) {
+			memcpy(pNI->data, pkt_data, ETHER_MAX_SIZE);
 			//AfxMessageBox("패킷 받았음 ㅋㅋ");
-			pNI->Receive((u_char*)pkt_data);
+			pNI->Receive(pNI->data);
 		}
 	}
 	return 0;

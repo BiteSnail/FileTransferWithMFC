@@ -1,4 +1,4 @@
-// ChatAppLayer.cpp: implementation of the CChatAppLayer class.
+// ChatAppLayer.cpp: implemtation of the CChatAppLayer class.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -57,58 +57,49 @@ unsigned int CChatAppLayer::GetDestinAddress()
 	return m_sHeader.app_dstaddr;
 }
 
+
 BOOL CChatAppLayer::Send(unsigned char* ppayload, int nlength)
 {
-	m_sHeader.app_length = (unsigned short)nlength;
+	if (nlength < CHAR_DATA_MAX_SIZE) {
+		m_sChatApp.capp_totlen = (unsigned short)(nlength + CHAT_HEADER_SIZE);
+		m_sChatApp.capp_type = 0x00;
+		memcpy(m_sChatApp.capp_data, ppayload, nlength);
+		this->GetUnderLayer()->Send((unsigned char*)&m_sChatApp, nlength + CHAT_HEADER_SIZE);
+		return TRUE;
+	}
+	/*else {
+		int length = nlength;
+		while (length < CHAR_DATA_MAX_SIZE) {
+			if (length == nlength) {
+				m_sChatApp.capp_totlen = (unsigned short)(CHAT_HEADER_SIZE+CHAR_DATA_MAX_SIZE);
+				m_sChatApp.capp_type = 0x01;
+				memcpy(m_sChatApp.capp_data, ppayload, CHAR_DATA_MAX_SIZE);
+				this->GetUnderLayer()->Send((unsigned char*)&m_sChatApp, CHAT_HEADER_SIZE + CHAR_DATA_MAX_SIZE);
+			}
+			else {
+				m_sChatApp.capp_totlen
+			}
+		}
 
-	BOOL bSuccess = FALSE;
-	//////////////////////// fill the blank ///////////////////////////////
-		// 메모리 복사로 데이터를 header에 저장
-		// ChatApp 레이어의 헤더에 데이터와 그 길이를 저장한다.
-	memcpy(m_sHeader.app_data, ppayload, nlength > APP_DATA_SIZE ? APP_DATA_SIZE : nlength);
-
-	// ChatApp 레이어의 밑에 레이어인 Ethertnet 레이어에 데이터를 넘겨준다.
-	// 메로리 참조로 ChatApp의(헤더 + 데이터)와 (데이터 길이+헤더길이)를
-	// 다음 계층의 data로 넘겨준다.
-	bSuccess = this->GetUnderLayer()->Send((unsigned char*)&m_sHeader, nlength + APP_HEADER_SIZE);
-	///////////////////////////////////////////////////////////////////////
-	return bSuccess;
+	}*/
+	return FALSE;
 }
+
+
 
 BOOL CChatAppLayer::Receive(unsigned char* ppayload)
 {
-	// ppayload를 ChatApp 헤더 구조체로 넣는다.
-	PCHAT_APP_HEADER app_hdr = (PCHAT_APP_HEADER)ppayload;
+	LPCHAT_APP chat_data = (LPCHAT_APP)ppayload;
 
-	// 보내는 쪽 주소와 받는 쪽의 주소가 일치한 경우 메시지를 보낸다.
-	if (app_hdr->app_dstaddr == m_sHeader.app_srcaddr ||
-		(app_hdr->app_srcaddr != m_sHeader.app_srcaddr &&
-			app_hdr->app_dstaddr == (unsigned int)0xff))
+	if (chat_data->capp_type == 0x00)
 	{
-		//////////////////////// fill the blank ///////////////////////////////
-				// 밑 계층에서 넘겨받은 ppayload를 분석하여 ChatDlg 계층으로 넘겨준다.
-		unsigned char GetBuff[APP_DATA_SIZE]; // 32비트 크기의 App Data Size만큼의 GetBuff를 선언한다.
-		memset(GetBuff, '\0', APP_DATA_SIZE);  // GetBuff를 초기화해준다.
-
-		// 받은 데이터인 App Header를 분석하여, GetBuff에 data 길이와 APP_DATA_SIZE 길이와 비교하여 정한 길이만큼
-		// data를 저장한다.
-		memcpy(GetBuff, app_hdr->app_data, app_hdr->app_length > APP_DATA_SIZE ? APP_DATA_SIZE : app_hdr->app_length);
-
-		CString Msg;
-		// App Header를 분석하여, 리스트 창에 뿌려줄 내용의 메시지를 구성한다.
-		// 보내는 쪽 또는 받는 쪽과 GetBuff에 저장된 메시지 내용을 합친다.
-		if (app_hdr->app_dstaddr == (unsigned)0xff)
-			Msg.Format(_T("[%d:BROADCAST] %s"), app_hdr->app_srcaddr, (char*)GetBuff);
-		else
-			Msg.Format(_T("[%d:%d] %s"), app_hdr->app_srcaddr, app_hdr->app_dstaddr, (char*)GetBuff);
-
-		// 위에서 만들어진 메시지 포맷을 ChatDlg로 넘겨준다.
-		mp_aUpperLayer[0]->Receive((unsigned char*)Msg.GetBuffer(0));
-		///////////////////////////////////////////////////////////////////////
+		unsigned char size = chat_data->capp_totlen;
+		unsigned char* GetBuff = nullptr;
+		memset(GetBuff, '\0', size);  // GetBuff를 초기화해준다.
+		memcpy(GetBuff, chat_data->capp_data, size);
+		this->mp_aUpperLayer[0]->Receive(chat_data->capp_data);
 		return TRUE;
 	}
-	else
-		return FALSE;
+	return FALSE;
 }
-
 

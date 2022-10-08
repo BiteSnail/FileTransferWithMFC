@@ -40,8 +40,18 @@ public:
 
 	} CHAT_APP_HEADER, * PCHAT_APP_HEADER;
 
+
+
+	typedef struct _CHAT_APP
+	{
+		unsigned short capp_totlen; // message length
+		unsigned char capp_type; // message type. 0x00: 단편화 X, 0x01: 단편화 시작, 0x02: 단편화 중간, 0x03: 단편화 끝
+		unsigned char capp_sequence; // 단편화 순서. 
+		unsigned char capp_data[CHAR_DATA_MAX_SIZE];
+	} CHAT_APP, * LPCHAT_APP;
 protected:
-	CHAT_APP_HEADER		m_sHeader;
+	CHAT_APP_HEADER		m_sHeader; // 지워야 하는 것
+	CHAT_APP	m_sChatApp;
 
 	enum {
 		DATA_TYPE_CONT = 0x01,

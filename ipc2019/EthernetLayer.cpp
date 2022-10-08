@@ -65,7 +65,7 @@ BOOL CEthernetLayer::Send(unsigned char* ppayload, int nlength, unsigned short t
 	// 윗 계층에서 받은 App 계층의 Frame 길이만큼을 Ethernet계층의 data로 넣는다.
 	memcpy(m_sHeader.enet_data, ppayload, nlength);
 	// 윗 계층에서 받은 type 또한 헤더에 포함시킨다.
-	memcpy(m_sHeader.enet_type, type, sizeof(int));
+	memcpy(m_sHeader.enet_type, type, sizeof(unsigned short));
 	BOOL bSuccess = FALSE;
 	//////////////////////// fill the blank ///////////////////////////////
 
@@ -82,13 +82,15 @@ BOOL CEthernetLayer::Receive(unsigned char* ppayload)
 
 	BOOL bSuccess = FALSE;
 	//////////////////////// fill the blank ///////////////////////////////
-		// enet_type을 기준으로 Ethernet Frame의 data를 넘겨줄 레이어를 지정한다.
-	if (pFrame->enet_type == 0x2080)
-		bSuccess = mp_aUpperLayer[0]->Receive(pFrame->enet_data);//mp_aUpperLayer[0] == ChatApp
-	else if(pFrame->enet_type == 0x2090)
-		bSuccess = mp_aUpperLayer[1]->Receive(pFrame->enet_data);//mp_aUpperLayer[1] == FileApp
-	else:
-		pass;//Error
+	if(memcmp(pFrame->enet_dstaddr, m_sHeader.enet_srcaddr) == 0 ){//주소 확인
+			// enet_type을 기준으로 Ethernet Frame의 data를 넘겨줄 레이어를 지정한다.
+		if (pFrame->enet_type == 0x2080)인
+			bSuccess = mp_aUpperLayer[0]->Receive(pFrame->enet_data)};//mp_aUpperLayer[0] == ChatApp
+		else if(pFrame->enet_type == 0x2090){
+			bSuccess = mp_aUpperLayer[1]->Receive(pFrame->enet_data)};//mp_aUpperLayer[1] == FileApp
+		else{
+			pass};//Error
+	}
 	///////////////////////////////////////////////////////////////////////
 
 	return bSuccess;

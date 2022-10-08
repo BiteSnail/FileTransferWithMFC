@@ -43,7 +43,20 @@ BOOL CNILayer::Receive(unsigned char* pkt) {
 	if (pkt == nullptr) {
 		return FALSE;
 	}
-	mp_aUpperLayer[0]->Receive(pkt);
+	int nlength = ETHER_HEADER_SIZE + ETHER_MAX_DATA_SIZE;
+	unsigned char* ppayload = new unsigned char[nlength + 1];
+
+	// 정해진 Frame의 길이만큼 파일의 내용(상대 프로세스에게 전송 받은 Ethernet Frame)을
+	// 읽어와서 ppayload를 결정한다.
+	
+	memcpy(ppayload, pkt, nlength);
+	ppayload[nlength] = '\0';
+
+	// Ethernet 계층으로 파일에서 가져온 Frame을 넘겨준다. 
+	if (!(mp_aUpperLayer[0]->Receive(ppayload))) { // 넘겨주지 못했다면 FALSE
+		return FALSE;
+	}
+	
 	return TRUE;
 }
 

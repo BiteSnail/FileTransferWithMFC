@@ -82,7 +82,7 @@ BOOL CEthernetLayer::Receive(unsigned char* ppayload)
 
 	BOOL bSuccess = FALSE;
 	//////////////////////// fill the blank ///////////////////////////////
-	if(memcmp(pFrame->enet_dstaddr, m_sHeader.enet_srcaddr, sizeof(m_sHeader.enet_srcaddr) == 0 )){//주소 확인
+	if(memcmp(pFrame->enet_dstaddr, m_sHeader.enet_srcaddr, sizeof(m_sHeader.enet_srcaddr))==0){//주소 확인
 			// enet_type을 기준으로 Ethernet Frame의 data를 넘겨줄 레이어를 지정한다.
 		if (pFrame->enet_type == 0x2080)
 			bSuccess = mp_aUpperLayer[0]->Receive(pFrame->enet_data);//mp_aUpperLayer[0] == ChatApp

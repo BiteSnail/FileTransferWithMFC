@@ -32,7 +32,7 @@ Cipc2019App::Cipc2019App()
 
 
 // 유일한 Cipc2019App 개체입니다.
-
+	
 Cipc2019App theApp;
 
 

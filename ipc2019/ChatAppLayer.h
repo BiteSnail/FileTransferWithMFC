@@ -18,6 +18,17 @@ class CChatAppLayer
 private:
 	inline void		ResetHeader();
 	CObject* mp_Dlg;
+	//
+	unsigned short totalLength;
+	struct FrameSeq	{
+		unsigned char* data;
+		unsigned char seq;
+		FrameSeq* next;
+	};
+	FrameSeq* Head;
+	void	add_after(FrameSeq* prev, unsigned char* data, unsigned char seq);
+	bool	seq_compare(FrameSeq* p, unsigned char seq);
+	void	add(unsigned char*data, unsigned char seq);
 
 public:
 	BOOL			Receive(unsigned char* ppayload);

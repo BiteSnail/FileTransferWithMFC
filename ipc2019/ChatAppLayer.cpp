@@ -12,86 +12,45 @@ static char THIS_FILE[] = __FILE__;
 #define new DEBUG_NEW
 #endif
 
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
 
 CChatAppLayer::CChatAppLayer(char* pName)
-	: CBaseLayer(pName),
-	mp_Dlg(NULL)
-{
-	ResetHeader();
-}
+	: CBaseLayer(pName), Head(nullptr), totalLength(0)
+{}
 
 CChatAppLayer::~CChatAppLayer()
-{
+{}
 
-}
-
-void CChatAppLayer::SetSourceAddress(unsigned int src_addr)
-{
-	m_sHeader.app_srcaddr = src_addr;
-}
-
-void CChatAppLayer::SetDestinAddress(unsigned int dst_addr)
-{
-	m_sHeader.app_dstaddr = dst_addr;
-}
-
-void CChatAppLayer::ResetHeader()
-{
-	m_sHeader.app_srcaddr = 0x00000000;
-	m_sHeader.app_dstaddr = 0x00000000;
-	m_sHeader.app_length = 0x0000;
-	m_sHeader.app_type = 0x00;
-	memset(m_sHeader.app_data, 0, APP_DATA_SIZE);
-}
-
-unsigned int CChatAppLayer::GetSourceAddress()
-{
-	return m_sHeader.app_srcaddr;
-}
-
-unsigned int CChatAppLayer::GetDestinAddress()
-{
-	return m_sHeader.app_dstaddr;
+void CChatAppLayer::make_frame(unsigned char* ppayload, unsigned short nlength, unsigned char type,int seq){
+	m_sChatApp.capp_totlen = nlength;
+	m_sChatApp.capp_type = type;
+	m_sChatApp.capp_sequence = (unsigned char)seq;
+	memcpy(m_sChatApp.capp_data, ppayload+(seq * CHAR_DATA_MAX_SIZE), nlength);
+	this->GetUnderLayer()->Send((unsigned char*)&m_sChatApp, nlength + CHAT_HEADER_SIZE);
 }
 
 
 BOOL CChatAppLayer::Send(unsigned char* ppayload, int nlength)
 {
+	//message length가 1496bytes 보다 작으면, 바로 하위 레이어로 전달
 	if (nlength < CHAR_DATA_MAX_SIZE) {
-		m_sChatApp.capp_totlen = (unsigned short)(nlength + CHAT_HEADER_SIZE);
-		m_sChatApp.capp_type = 0x00;
-		memcpy(m_sChatApp.capp_data, ppayload, nlength);
-		this->GetUnderLayer()->Send((unsigned char*)&m_sChatApp, nlength + CHAT_HEADER_SIZE);
+		make_frame(ppayload, nlength, 0x00, 0);
 		return TRUE;
 	}
+	//message length가 1496bytes 보다 큰 경우 단편화 작업...
 	else {
-		int length = nlength-CHAR_DATA_MAX_SIZE;
-		int i = 0;
+		int length = nlength-CHAR_DATA_MAX_SIZE;	//최초 단편화 frame을 고려해 1496bytes 만큼 뺀다.
+		int i = 0;	//몇 번 단편화 하는지 count 변수
 
-		m_sChatApp.capp_totlen = (unsigned short)nlength;
-		m_sChatApp.capp_type = 0x01;
-		m_sChatApp.capp_sequence = i;
-		memcpy(m_sChatApp.capp_data, ppayload, CHAR_DATA_MAX_SIZE);
-		this->GetUnderLayer()->Send((unsigned char*)&m_sChatApp, CHAT_HEADER_SIZE + CHAR_DATA_MAX_SIZE);
+		//최초 단편화 된 frame을 만들어 하위 레이어로 전달
+		make_frame(ppayload, CHAR_DATA_MAX_SIZE, 0x01, i);
 		i++;
 
 		for (; nlength - (i * CHAR_DATA_MAX_SIZE) > CHAR_DATA_MAX_SIZE; i++, length -= (i * CHAR_DATA_MAX_SIZE)) {
-			m_sChatApp.capp_totlen = (unsigned short)length;
-			m_sChatApp.capp_type = 0x02;
-			m_sChatApp.capp_sequence = (unsigned char)i;
-			memcpy(m_sChatApp.capp_data, ppayload + (i*CHAR_DATA_MAX_SIZE), CHAR_DATA_MAX_SIZE);
-			this->GetUnderLayer()->Send((unsigned char*)&m_sChatApp, CHAT_HEADER_SIZE + CHAR_DATA_MAX_SIZE);
+			//처음과 끝 부분을 제외한 중간 부분 frame을 만들어 하위 레이어로 전달
+			make_frame(ppayload, CHAR_DATA_MAX_SIZE, 0x02, i);
 		}
-
-		m_sChatApp.capp_totlen = (unsigned short)length;
-		m_sChatApp.capp_type = 0x03;
-		m_sChatApp.capp_sequence = i;
-		memcpy(m_sChatApp.capp_data, ppayload+(i*CHAR_DATA_MAX_SIZE), length);
-		this->GetUnderLayer()->Send((unsigned char*)&m_sChatApp, CHAT_HEADER_SIZE + CHAR_DATA_MAX_SIZE);
-
+		//마지막 단편화 된 frame을 만들어 하위 레이어로 전달
+		make_frame(ppayload, length, 0x03, i);
 		return TRUE;
 	}
 	return FALSE;
@@ -122,6 +81,7 @@ void CChatAppLayer::add(unsigned char* data, unsigned char seq){
 	add_after(q, data, seq);
 }
 
+
 BOOL CChatAppLayer::Receive(unsigned char* ppayload)
 {
 	LPCHAT_APP chat_data = (LPCHAT_APP)ppayload;
@@ -141,6 +101,7 @@ BOOL CChatAppLayer::Receive(unsigned char* ppayload)
 			FirstFrame->data = chat_data->capp_data;
 			FirstFrame->next = nullptr;
 			totalLength = chat_data->capp_totlen;
+			Head = FirstFrame;
 			return true;
 		}
 		else if (chat_data->capp_type == 0x02) {
@@ -157,9 +118,19 @@ BOOL CChatAppLayer::Receive(unsigned char* ppayload)
 			if ((i - 1) * CHAR_DATA_MAX_SIZE + (chat_data->capp_totlen) != totalLength)return false;
 			memcpy(GetBuff+(i*CHAR_DATA_MAX_SIZE), chat_data->capp_data, chat_data->capp_totlen);
 			mp_aUpperLayer[0]->Receive(GetBuff);
+			deleteList();
 			return true;
 		}
 	}
 	return false;
 }
 
+void CChatAppLayer::deleteList(){
+	FrameSeq* tmp = Head;
+	while (tmp != nullptr) {
+		Head = Head->next;
+		delete tmp;
+		tmp = Head;
+	}
+	Head = nullptr;
+}

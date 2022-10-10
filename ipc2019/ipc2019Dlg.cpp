@@ -59,8 +59,8 @@ Cipc2019Dlg::Cipc2019Dlg(CWnd* pParent /*=nullptr*/)
 	, m_bSendReady(FALSE)
 	, m_nAckReady( -1 )
 
-	, m_unSrcAddr(0)
-	, m_unDstAddr(0)
+	, m_unSrcAddr(_T(""))
+	, m_unDstAddr(_T(""))
 	, m_stMessage(_T(""))
 	, m_adapterName(_T(""))
 {

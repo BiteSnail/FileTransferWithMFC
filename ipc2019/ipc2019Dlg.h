@@ -85,8 +85,8 @@ private:
 public:
 	afx_msg void OnBnClickedButtonAddr();
 	afx_msg void OnBnClickedButtonSend();
-	UINT m_unSrcAddr;
-	UINT m_unDstAddr;
+	CString m_unSrcAddr;
+	CString m_unDstAddr;
 	CString m_stMessage;
 	CListBox m_ListChat;
 	afx_msg void OnBnClickedCheckToall();

@@ -84,7 +84,7 @@ Cipc2019Dlg::Cipc2019Dlg(CWnd* pParent /*=nullptr*/)
 
 	m_ChatApp = (CChatAppLayer*)m_LayerMgr.GetLayer("ChatApp");
 	m_Network = (CNILayer*)m_LayerMgr.GetLayer("Network");
-	m_Ethernet = (CEthernetLayer*)m_LayerMgr.GetLayer("Etherent");
+	m_Ethernet = (CEthernetLayer*)m_LayerMgr.GetLayer("Ethernet");
 	//Protocol Layer Setting
 }
 
@@ -97,6 +97,7 @@ void Cipc2019Dlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_LIST_CHAT, m_ListChat);
 	DDX_Control(pDX, IDC_COMBO_ADAPTER_LIST, m_adapterList);
 	DDX_CBString(pDX, IDC_COMBO_ADAPTER_LIST, m_adapterName);
+	DDX_Control(pDX, IDC_EDIT_SRC, m_editSrc);
 }
 
 // 레지스트리에 등록하기 위한 변수
@@ -119,6 +120,7 @@ BEGIN_MESSAGE_MAP(Cipc2019Dlg, CDialogEx)
 	
 	
 	ON_BN_CLICKED(IDC_CHECK_TOALL, &Cipc2019Dlg::OnBnClickedCheckToall)
+	ON_CBN_SELCHANGE(IDC_COMBO_ADAPTER_LIST, &Cipc2019Dlg::OnCbnSelchangeComboAdapterList)
 END_MESSAGE_MAP()
 
 
@@ -396,24 +398,25 @@ void Cipc2019Dlg::OnTimer(UINT nIDEvent)
 
 void Cipc2019Dlg::Stouc(CString& src, UCHAR* dst) 
 {
-	sscanf_s(src, "%02x:02x:02x:02x:02x:02x",
+	sscanf_s(src, "%02x:%02x:%02x:%02x:%02x:%02x",
 		&dst[0], &dst[1], &dst[2],
 		&dst[3], &dst[4], &dst[5]);
 }
 
 void Cipc2019Dlg::UctoS(UCHAR* src, CString& dst)
 {
-	dst.Format(_T("%02x:02x:02x:02x:02x:02x"),
-		&src[0], &src[1], &src[2],
-		&src[3], &src[4], &src[5]);
+	dst.Format(_T("%02x:%02x:%02x:%02x:%02x:%02x"),
+		src[0], src[1], src[2],
+		src[3], src[4], src[5]);
 }
 
 void Cipc2019Dlg::OnBnClickedButtonAddr()
 {	
 	UpdateData(TRUE);
 
-	if (!m_unDstAddr ||
-		!m_unSrcAddr)
+	if (m_unDstAddr=="" ||
+		m_unSrcAddr=="" ||
+		m_unDstAddr.GetLength() < 16)
 	{
 		AfxMessageBox(_T("주소를 설정 오류발생",
 			"경고"),
@@ -431,6 +434,7 @@ void Cipc2019Dlg::OnBnClickedButtonAddr()
 		m_Ethernet->SetSourceAddress(m_ucSrcAddr);
 		m_Ethernet->SetDestinAddress(m_ucDstAddr);
 
+		AfxBeginThread(m_Network->ThreadFunction_RECEIVE, m_Network);
 		SetDlgState(IPC_ADDR_SET);
 		SetDlgState(IPC_READYTOSEND);
 	}
@@ -450,4 +454,12 @@ void Cipc2019Dlg::OnBnClickedCheckToall()
 	else {
 		SetDlgState(IPC_UNICASTMODE);
 	}
+}
+
+void Cipc2019Dlg::OnCbnSelchangeComboAdapterList()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	memcpy(m_ucSrcAddr, m_Network->SetAdapter(m_adapterList.GetCurSel()),6);
+	UctoS(m_ucSrcAddr, m_unSrcAddr);
+	m_editSrc.SetWindowTextA(m_unSrcAddr);
 }

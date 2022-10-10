@@ -43,8 +43,8 @@ protected:
 public:
 //	UINT m_unDstAddr;
 //	UINT unSrcAddr;
-//	CString m_stMessage;
-//	CListBox m_ListChat;
+	//CString m_stMessage;
+	//CListBox m_ListChat;
 	
 	afx_msg void OnTimer(UINT nIDEvent);
 
@@ -92,11 +92,13 @@ public:
 	afx_msg void OnBnClickedButtonSend();
 	CString m_unSrcAddr;
 	CString m_unDstAddr;
-	UCHAR m_ucSrcAddr[6];
-	UCHAR m_ucDstAddr[6];
 	CString m_stMessage;
 	CListBox m_ListChat;
 	afx_msg void OnBnClickedCheckToall();
 	CComboBox m_adapterList;
 	CString m_adapterName;
+	afx_msg void OnCbnSelchangeComboAdapterList();
+	CEdit m_editSrc;
+	UCHAR m_ucSrcAddr[6];
+	UCHAR m_ucDstAddr[6];
 };

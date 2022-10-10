@@ -94,7 +94,7 @@ UINT CNILayer::ThreadFunction_RECEIVE(LPVOID pParam) {
 
 	int result=1;
 	
-	while (1)
+	while (pNI->canRead)
 	{
 		result = pcap_next_ex(pNI->m_AdapterObject, &header, &pkt_data);
 		if (result == 0) {
@@ -107,4 +107,8 @@ UINT CNILayer::ThreadFunction_RECEIVE(LPVOID pParam) {
 		}
 	}
 	return 0;
+}
+
+void CNILayer::flip() {
+	canRead = !canRead;
 }

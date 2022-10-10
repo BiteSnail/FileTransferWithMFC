@@ -412,6 +412,8 @@ void Cipc2019Dlg::OnBnClickedButtonAddr()
 {	
 	UpdateData(TRUE);
 
+	
+
 	if (m_unDstAddr=="" ||
 		m_unSrcAddr=="" ||
 		m_unDstAddr.GetLength() < 16)
@@ -422,7 +424,7 @@ void Cipc2019Dlg::OnBnClickedButtonAddr()
 
 		return;
 	}
-
+	m_Network->flip();
 	if (m_bSendReady) {
 		SetDlgState(IPC_ADDR_RESET);
 		SetDlgState(IPC_INITIALIZING);
@@ -431,7 +433,7 @@ void Cipc2019Dlg::OnBnClickedButtonAddr()
 		Stouc(m_unDstAddr, m_ucDstAddr);
 		m_Ethernet->SetSourceAddress(m_ucSrcAddr);
 		m_Ethernet->SetDestinAddress(m_ucDstAddr);
-
+		
 		AfxBeginThread(m_Network->ThreadFunction_RECEIVE, m_Network);
 		SetDlgState(IPC_ADDR_SET);
 		SetDlgState(IPC_READYTOSEND);

@@ -24,10 +24,10 @@ class CNILayer : public CBaseLayer { //Thread 구현
     pcap_t* m_AdapterObject;
     UCHAR data[1500];
     char errbuf[PCAP_ERRBUF_SIZE];
-    bpf_u_int32 net, mask;
     UCHAR macAddress[6];
     LPADAPTER adapter = NULL;
     PPACKET_OID_DATA OidData;
+    bool canRead = false;
 public:
     CNILayer(char* pName); //생성 시에 pcap_findalldevs로 adapter 정보 저장
     ~CNILayer(); //소멸자
@@ -37,6 +37,7 @@ public:
     UCHAR* SetAdapter(const int index); //set inum, return value is MAC ADDRESS
     static UINT ThreadFunction_RECEIVE(LPVOID pParam);
     static UINT ThreadFunction_SEND(LPVOID pParam);
+    void flip();
 };
 
 #endif // !defined(AFX_NETWORKINTERFACELAYER_H)

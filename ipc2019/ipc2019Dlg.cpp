@@ -221,8 +221,8 @@ void Cipc2019Dlg::OnBnClickedButtonSend()
 
 	if (!m_stMessage.IsEmpty())
 	{
-		SetTimer(1, 2000, NULL);
-		m_nAckReady = 0;
+		//SetTimer(1, 2000, NULL);
+		//m_nAckReady = 0;
 
 		SendData();
 		m_stMessage = "";
@@ -231,7 +231,7 @@ void Cipc2019Dlg::OnBnClickedButtonSend()
 
 		//////////////////////// fill the blank ///////////////////////////////
 				// Send 신호를 브로드캐스트로 알림
-		::SendMessage(HWND_BROADCAST,nRegSendMsg, 0, 0);
+		//::SendMessage(HWND_BROADCAST,nRegSendMsg, 0, 0);
 		///////////////////////////////////////////////////////////////////////
 	}
 
@@ -248,10 +248,8 @@ void Cipc2019Dlg::SetRegstryMessage()
 void Cipc2019Dlg::SendData()
 {
 	CString MsgHeader;
-	if (m_unDstAddr == (unsigned int)0xff)
-		MsgHeader.Format(_T("[%d:BROADCAST] "), m_unSrcAddr);
-	else
-		MsgHeader.Format(_T("[%d:%d] "), m_unSrcAddr, m_unDstAddr);
+
+	MsgHeader.Format(_T("[%s -> %s] "), m_unSrcAddr, m_unDstAddr);
 
 	m_ListChat.AddString(MsgHeader + m_stMessage);
 

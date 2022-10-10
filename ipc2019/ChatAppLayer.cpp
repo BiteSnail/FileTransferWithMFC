@@ -25,7 +25,7 @@ void CChatAppLayer::make_frame(unsigned char* ppayload, unsigned short nlength, 
 	m_sChatApp.capp_type = type;
 	m_sChatApp.capp_sequence = (unsigned char)seq;
 	memcpy(m_sChatApp.capp_data, ppayload+(seq * CHAR_DATA_MAX_SIZE), nlength);
-	this->GetUnderLayer()->Send((unsigned char*)&m_sChatApp, nlength + CHAT_HEADER_SIZE);
+	((CEthernetLayer*)(this->GetUnderLayer()))->Send((unsigned char*)&m_sChatApp, nlength + CHAT_HEADER_SIZE, 0x2080);
 }
 
 

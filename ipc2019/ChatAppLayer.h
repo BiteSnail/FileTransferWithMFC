@@ -12,13 +12,15 @@
 
 #include "BaseLayer.h"
 #include "pch.h"
+#define CHAT_MAX_DATA 1496
+
 class CChatAppLayer
 	: public CBaseLayer
 {
 private:
 	unsigned short totalLength;
 	struct FrameSeq	{
-		unsigned char* data;
+		CString data;
 		unsigned char seq;
 		FrameSeq* next;
 	};

@@ -76,12 +76,15 @@ Cipc2019Dlg::Cipc2019Dlg(CWnd* pParent /*=nullptr*/)
 	m_LayerMgr.AddLayer(new CChatAppLayer("ChatApp"));
 	m_LayerMgr.AddLayer(new CEthernetLayer("Ethernet"));
 	m_LayerMgr.AddLayer(new CFileLayer("File"));
+	m_LayerMgr.AddLayer(new CNILayer("Network"));
 	m_LayerMgr.AddLayer(this);
 
 	// 레이어를 연결한다. (레이어 생성)
-	m_LayerMgr.ConnectLayers("File ( *Ethernet ( *ChatApp ( *ChatDlg ) ) )");
+	m_LayerMgr.ConnectLayers("Network ( *Ethernet ( *ChatApp ( *ChatDlg ) ) )");
 
 	m_ChatApp = (CChatAppLayer*)m_LayerMgr.GetLayer("ChatApp");
+	m_Network = (CNILayer*)m_LayerMgr.GetLayer("Network");
+	m_Ethernet = (CEthernetLayer*)m_LayerMgr.GetLayer("Etherent");
 	//Protocol Layer Setting
 }
 
@@ -153,6 +156,7 @@ BOOL Cipc2019Dlg::OnInitDialog()
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
 	SetRegstryMessage();
 	SetDlgState(IPC_INITIALIZING);
+	SetAdapterList();
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
@@ -289,6 +293,13 @@ BOOL Cipc2019Dlg::PreTranslateMessage(MSG* pMsg)
 	return CDialog::PreTranslateMessage(pMsg);
 }
 
+void Cipc2019Dlg::SetAdapterList()
+{
+	CStringArray aList;
+	m_Network->GetMacAddressList(aList);
+	for (int i = 0; i < aList.GetSize(); i++)
+		m_adapterList.AddString(aList[i]);
+}
 
 void Cipc2019Dlg::SetDlgState(int state)
 {
@@ -317,11 +328,11 @@ void Cipc2019Dlg::SetDlgState(int state)
 	case IPC_WAITFORACK:	break;
 	case IPC_ERROR:		break;
 	case IPC_UNICASTMODE:
-		m_unDstAddr = 0x0;
+		memset(m_ucDstAddr, 0x00, 6);
 		pDstEdit->EnableWindow(TRUE);
 		break;
 	case IPC_BROADCASTMODE:
-		m_unDstAddr = 0xff;
+		memset(m_ucDstAddr, 0xff, 6);
 		pDstEdit->EnableWindow(FALSE);
 		break;
 	case IPC_ADDR_SET:
@@ -383,9 +394,22 @@ void Cipc2019Dlg::OnTimer(UINT nIDEvent)
 	CDialog::OnTimer(nIDEvent);
 }
 
+void Cipc2019Dlg::Stouc(CString& src, UCHAR* dst) 
+{
+	sscanf_s(src, "%02x:02x:02x:02x:02x:02x",
+		&dst[0], &dst[1], &dst[2],
+		&dst[3], &dst[4], &dst[5]);
+}
+
+void Cipc2019Dlg::UctoS(UCHAR* src, CString& dst)
+{
+	dst.Format(_T("%02x:02x:02x:02x:02x:02x"),
+		&src[0], &src[1], &src[2],
+		&src[3], &src[4], &src[5]);
+}
 
 void Cipc2019Dlg::OnBnClickedButtonAddr()
-{
+{	
 	UpdateData(TRUE);
 
 	if (!m_unDstAddr ||
@@ -403,8 +427,9 @@ void Cipc2019Dlg::OnBnClickedButtonAddr()
 		SetDlgState(IPC_INITIALIZING);
 	}
 	else {
-		m_ChatApp->SetSourceAddress(m_unSrcAddr);
-		m_ChatApp->SetDestinAddress(m_unDstAddr);
+		Stouc(m_unDstAddr, m_ucDstAddr);
+		m_Ethernet->SetSourceAddress(m_ucSrcAddr);
+		m_Ethernet->SetDestinAddress(m_ucDstAddr);
 
 		SetDlgState(IPC_ADDR_SET);
 		SetDlgState(IPC_READYTOSEND);

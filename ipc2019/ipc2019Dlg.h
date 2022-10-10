@@ -69,6 +69,9 @@ private:
 	};
 
 	void			SetDlgState(int state);
+	void			SetAdapterList();
+	static void		Stouc(CString& src, UCHAR* dst);
+	static void		UctoS(UCHAR* src, CString& dst);
 	inline void		EndofProcess();
 	inline void		SetRegstryMessage();
 	LRESULT			OnRegSendMsg(WPARAM wParam, LPARAM lParam);
@@ -78,6 +81,8 @@ private:
 
 	// Object App
 	CChatAppLayer* m_ChatApp;
+	CEthernetLayer* m_Ethernet;
+	CNILayer* m_Network;
 
 	// Implementation
 	UINT			m_wParam;
@@ -87,6 +92,8 @@ public:
 	afx_msg void OnBnClickedButtonSend();
 	CString m_unSrcAddr;
 	CString m_unDstAddr;
+	UCHAR m_ucSrcAddr[6];
+	UCHAR m_ucDstAddr[6];
 	CString m_stMessage;
 	CListBox m_ListChat;
 	afx_msg void OnBnClickedCheckToall();

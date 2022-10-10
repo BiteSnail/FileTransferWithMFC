@@ -27,6 +27,7 @@ private:
 	bool	seq_compare(FrameSeq* p, unsigned char seq);
 	void	add(unsigned char*data, unsigned char seq);
 	void	make_frame(unsigned char* ppayoad, unsigned short nlength,unsigned char type, int seq);
+	void	deleteList();
 
 public:
 	BOOL			Receive(unsigned char* ppayload);

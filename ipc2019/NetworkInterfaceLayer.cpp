@@ -94,8 +94,9 @@ UINT CNILayer::ThreadFunction_RECEIVE(LPVOID pParam) {
 
 	int result=1;
 	
-	while (result = pcap_next_ex(pNI->m_AdapterObject, &header, &pkt_data)  >=0)
+	while (1)
 	{
+		result = pcap_next_ex(pNI->m_AdapterObject, &header, &pkt_data);
 		if (result == 0) {
 			//AfxMessageBox("패킷 없음 ㅋㅋ");
 		}

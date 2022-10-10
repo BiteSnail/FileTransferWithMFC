@@ -26,6 +26,7 @@
 #define IDC_BUTTON1                     1009
 #define IDC_BUTTON2                     1010
 #define IDC_COMBO1                      1011
+#define IDC_COMBO_ADAPTER_LIST          1011
 
 // Next default values for new objects
 // 

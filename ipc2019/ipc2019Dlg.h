@@ -90,4 +90,6 @@ public:
 	CString m_stMessage;
 	CListBox m_ListChat;
 	afx_msg void OnBnClickedCheckToall();
+	CComboBox m_adapterList;
+	CString m_adapterName;
 };

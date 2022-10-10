@@ -62,6 +62,7 @@ Cipc2019Dlg::Cipc2019Dlg(CWnd* pParent /*=nullptr*/)
 	, m_unSrcAddr(0)
 	, m_unDstAddr(0)
 	, m_stMessage(_T(""))
+	, m_adapterName(_T(""))
 {
 	//대화상자 멤버 변수 초기화
 	//  m_unDstAddr = 0;
@@ -91,6 +92,8 @@ void Cipc2019Dlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT_DST, m_unDstAddr);
 	DDX_Text(pDX, IDC_EDIT_MSG, m_stMessage);
 	DDX_Control(pDX, IDC_LIST_CHAT, m_ListChat);
+	DDX_Control(pDX, IDC_COMBO_ADAPTER_LIST, m_adapterList);
+	DDX_CBString(pDX, IDC_COMBO_ADAPTER_LIST, m_adapterName);
 }
 
 // 레지스트리에 등록하기 위한 변수

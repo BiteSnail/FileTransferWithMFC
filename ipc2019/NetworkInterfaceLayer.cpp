@@ -76,7 +76,7 @@ UCHAR* CNILayer::SetAdapter(const int index) { //MAC 주소를 전달!
 
 	memcpy(macAddress, (OidData->Data), 6);
 	PacketCloseAdapter(adapter);
-	AfxBeginThread(ThreadFunction_RECEIVE, this);
+	//AfxBeginThread(ThreadFunction_RECEIVE, this);
 
 	return macAddress;
 }

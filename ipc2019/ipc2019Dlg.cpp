@@ -337,16 +337,16 @@ void Cipc2019Dlg::SetDlgState(int state)
 		break;
 	case IPC_ADDR_SET:
 		pSetAddrButton->SetWindowText(_T("재설정(&R)"));
-		pSrcEdit->EnableWindow(FALSE);
+		//pSrcEdit->EnableWindow(FALSE);
 		pDstEdit->EnableWindow(FALSE);
 		//pChkButton->EnableWindow(FALSE);
 		break;
 	case IPC_ADDR_RESET:
 		pSetAddrButton->SetWindowText(_T("설정(&O)"));
-		pSrcEdit->EnableWindow(TRUE);
-		if (!pChkButton->GetCheck())
-			pDstEdit->EnableWindow(TRUE);
-		pChkButton->EnableWindow(TRUE);
+		pDstEdit->EnableWindow(TRUE);
+		//if (!pChkButton->GetCheck())
+		//	pDstEdit->EnableWindow(TRUE);
+		//pChkButton->EnableWindow(TRUE);
 		break;
 	}
 

@@ -88,23 +88,18 @@ BOOL CChatAppLayer::Receive(unsigned char* ppayload)
 
 	if (chat_data->capp_type == 0x00)
 	{
-		unsigned char size = chat_data->capp_totlen;
-		unsigned char GetBuff[CHAT_MAX_DATA];
-		memset(GetBuff, '\0', CHAT_MAX_DATA);  // GetBuff를 초기화해준다.
-
+		unsigned short size = chat_data->capp_totlen;
+		unsigned char *GetBuff=(unsigned char*)malloc(sizeof(unsigned char)*(size+1));
+		memset(GetBuff, '\0', size);  // GetBuff를 초기화해준다.
 		memcpy(GetBuff, chat_data->capp_data, size);
-		CString Msg;
-
-		Msg.Format(_T("%s"), GetBuff);
-
-		this->mp_aUpperLayer[0]->Receive((unsigned char*)Msg.GetBuffer(0));
+		this->mp_aUpperLayer[0]->Receive((unsigned char*)GetBuff);
 		return true;
 	}else {
 		if (chat_data->capp_type == 0x01) {
 			FrameSeq *FirstFrame = new FrameSeq;
 			FirstFrame->seq = 0;
-			(FirstFrame->data).Format(_T("%s"), chat_data->capp_data);
 			FirstFrame->next = nullptr;
+			FirstFrame->data = chat_data->capp_data;
 			totalLength = chat_data->capp_totlen;
 			Head = FirstFrame;
 			return true;
@@ -114,12 +109,14 @@ BOOL CChatAppLayer::Receive(unsigned char* ppayload)
 			return true;
 		}
 		else {
-			CString mergeMsg="";
+			unsigned char* GetBuff = (unsigned char*)malloc(sizeof(unsigned char) * (totalLength + 1));
+			memset(GetBuff, '\0', totalLength);  // GetBuff를 초기화해준다.
 			int i = 0;
 			for (FrameSeq *_head = Head; _head != nullptr; i++, _head = _head->next) {
-				mergeMsg += _head->data;
+				memcpy(GetBuff + (i * CHAR_DATA_MAX_SIZE), _head->data, CHAR_DATA_MAX_SIZE);
 			}
-			mp_aUpperLayer[0]->Receive((unsigned char*)mergeMsg.GetBuffer(0));
+			memcpy(GetBuff + (i * CHAR_DATA_MAX_SIZE), chat_data->capp_data, totalLength);
+			mp_aUpperLayer[0]->Receive(GetBuff);
 			deleteList();
 			return true;
 		}

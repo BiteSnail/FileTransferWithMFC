@@ -20,11 +20,12 @@ class CChatAppLayer
 private:
 	unsigned short totalLength;
 	struct FrameSeq	{
-		CString data;
+		unsigned char data[CHAR_DATA_MAX_SIZE];
 		unsigned char seq;
 		FrameSeq* next;
 	};
 	FrameSeq* Head;
+	UCHAR* Buffer;
 	void	add_after(FrameSeq* prev, unsigned char* data, unsigned char seq);
 	bool	seq_compare(FrameSeq* p, unsigned char seq);
 	void	add(unsigned char*data, unsigned char seq);

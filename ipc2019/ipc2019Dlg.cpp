@@ -98,6 +98,7 @@ void Cipc2019Dlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_COMBO_ADAPTER_LIST, m_adapterList);
 	DDX_CBString(pDX, IDC_COMBO_ADAPTER_LIST, m_adapterName);
 	DDX_Control(pDX, IDC_EDIT_SRC, m_editSrc);
+	DDX_Control(pDX, IDC_PROGRESS_FILE_TRANSFER, m_progressFile);
 }
 
 // 레지스트리에 등록하기 위한 변수
@@ -122,6 +123,7 @@ BEGIN_MESSAGE_MAP(Cipc2019Dlg, CDialogEx)
 	ON_BN_CLICKED(IDC_CHECK_TOALL, &Cipc2019Dlg::OnBnClickedCheckToall)
 	ON_CBN_SELCHANGE(IDC_COMBO_ADAPTER_LIST, &Cipc2019Dlg::OnCbnSelchangeComboAdapterList)
 	ON_BN_CLICKED(IDC_BUTTON_SEL_FILE, &Cipc2019Dlg::OnBnClickedButtonSelFile)
+	ON_BN_CLICKED(IDC_BUTTON_SEND_FILE, &Cipc2019Dlg::OnBnClickedButtonSendFile)
 END_MESSAGE_MAP()
 
 
@@ -470,8 +472,11 @@ void Cipc2019Dlg::OnBnClickedButtonSelFile()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 	CString str = _T("All files(*.*)|*.*|"); // 모든 파일 표시
-	// _T("Excel 파일 (*.xls, *.xlsx) |*.xls; *.xlsx|"); 와 같이 확장자를 제한하여 표시할 수 있음
-	CFileDialog dlg(TRUE, _T("*.dat"), NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, str, this);
+
+	CFileDialog dlg(TRUE, _T("*.dat"), NULL,
+		OFN_HIDEREADONLY | 
+		OFN_OVERWRITEPROMPT
+		, str, this);
 
 	if (dlg.DoModal() == IDOK)
 	{
@@ -479,4 +484,27 @@ void Cipc2019Dlg::OnBnClickedButtonSelFile()
 		// 파일 경로를 가져와 사용할 경우, Edit Control에 값 저장
 		SetDlgItemText(IDC_EDIT_FILE_PATH, strPathName);
 	}
+
+}
+
+
+void Cipc2019Dlg::OnBnClickedButtonSendFile()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	CFile file;
+	file.Open(strPathName, CFile::modeRead);
+	CArchive ar(&file, CArchive::load);
+	unsigned char buffer[1500];
+	CString a;
+	a.Format("%d", file.GetLength());
+	AfxMessageBox(a);
+	m_progressFile.SetRange(0, file.GetLength()/1488);
+	int i = 0;
+	while (ar.Read(buffer, 1488)) {
+		m_progressFile.SetPos(i);
+		i++;
+	}
+	ar.Close();
+	file.Close();
+
 }

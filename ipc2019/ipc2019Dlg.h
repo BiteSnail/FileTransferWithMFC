@@ -103,4 +103,6 @@ public:
 	UCHAR m_ucSrcAddr[6];
 	UCHAR m_ucDstAddr[6];
 	afx_msg void OnBnClickedButtonSelFile();
+	afx_msg void OnBnClickedButtonSendFile();
+	CProgressCtrl m_progressFile;
 };

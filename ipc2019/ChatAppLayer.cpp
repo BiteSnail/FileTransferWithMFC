@@ -21,11 +21,14 @@ CChatAppLayer::~CChatAppLayer()
 {}
 
 void CChatAppLayer::make_frame(unsigned char* ppayload, unsigned short nlength, unsigned char type,int seq){
-	m_sChatApp.capp_totlen = nlength;
+	unsigned short length = nlength;
+	if (type == 0x00 || type == 0x03)length++;
 	m_sChatApp.capp_type = type;
+	m_sChatApp.capp_totlen = length;
 	m_sChatApp.capp_sequence = (unsigned char)seq;
-	memcpy(m_sChatApp.capp_data, ppayload+(seq * CHAR_DATA_MAX_SIZE), nlength);
-	((CEthernetLayer*)(this->GetUnderLayer()))->Send((unsigned char*)&m_sChatApp, nlength + CHAT_HEADER_SIZE, 0x2080);
+	//memset(m_sChatApp.capp_data, 0, length > CHAR_DATA_MAX_SIZE ? CHAR_DATA_MAX_SIZE : length);
+	memcpy(m_sChatApp.capp_data, ppayload+(seq * CHAR_DATA_MAX_SIZE), length > CHAR_DATA_MAX_SIZE ? CHAR_DATA_MAX_SIZE : length);
+	((CEthernetLayer*)(this->GetUnderLayer()))->Send((unsigned char*)&m_sChatApp, CHAT_HEADER_SIZE + (length > CHAR_DATA_MAX_SIZE ? CHAR_DATA_MAX_SIZE : length), 0x2080);
 }
 
 
@@ -42,10 +45,10 @@ BOOL CChatAppLayer::Send(unsigned char* ppayload, int nlength)
 		int i = 0;	//몇 번 단편화 하는지 count 변수
 
 		//최초 단편화 된 frame을 만들어 하위 레이어로 전달
-		make_frame(ppayload, CHAR_DATA_MAX_SIZE, 0x01, i);
+		make_frame(ppayload, nlength, 0x01, i);
 		i++;
 
-		for (; nlength - (i * CHAR_DATA_MAX_SIZE) > CHAR_DATA_MAX_SIZE; i++, length -= (i * CHAR_DATA_MAX_SIZE)) {
+		for (; length > CHAR_DATA_MAX_SIZE; i++, length -= CHAR_DATA_MAX_SIZE) {
 			//처음과 끝 부분을 제외한 중간 부분 frame을 만들어 하위 레이어로 전달
 			make_frame(ppayload, CHAR_DATA_MAX_SIZE, 0x02, i);
 		}
@@ -60,7 +63,8 @@ BOOL CChatAppLayer::Send(unsigned char* ppayload, int nlength)
 
 void CChatAppLayer::add_after(FrameSeq* prev, unsigned char* data, unsigned char seq){
 	FrameSeq* tmp = new FrameSeq;
-	(tmp->data).Format(_T("%s"), data);
+	tmp->data = (UCHAR*)malloc(CHAR_DATA_MAX_SIZE);
+	memcpy(tmp->data, data, CHAR_DATA_MAX_SIZE);
 	tmp->seq = seq;
 	tmp->next = prev->next;
 	prev->next = tmp;
@@ -74,13 +78,22 @@ bool CChatAppLayer::seq_compare(FrameSeq* p, unsigned char seq){
 void CChatAppLayer::add(unsigned char* data, unsigned char seq){
 	FrameSeq* p = Head;
 	FrameSeq* q = nullptr;
-	while (seq_compare(p, seq)) {
+	while (p!=nullptr && seq_compare(p, seq)) {
 		q = p;
 		p = p->next;
 	}
-	add_after(q, data, seq);
+	if (q == nullptr)add_first(data, seq);
+	else add_after(q, data, seq);
 }
 
+void CChatAppLayer::add_first(unsigned char* data, unsigned char seq) {
+	FrameSeq* tmp = new FrameSeq;
+	tmp->data = (UCHAR*)malloc(CHAR_DATA_MAX_SIZE);
+	memcpy(tmp->data, data, CHAR_DATA_MAX_SIZE);
+	tmp->seq = seq;
+	tmp->next = Head;
+	Head = tmp;
+}
 
 BOOL CChatAppLayer::Receive(unsigned char* ppayload)
 {
@@ -88,25 +101,16 @@ BOOL CChatAppLayer::Receive(unsigned char* ppayload)
 
 	if (chat_data->capp_type == 0x00)
 	{
-		unsigned char size = chat_data->capp_totlen;
-		unsigned char GetBuff[CHAT_MAX_DATA];
-		memset(GetBuff, '\0', CHAT_MAX_DATA);  // GetBuff를 초기화해준다.
-
+		unsigned short size = chat_data->capp_totlen;
+		unsigned char *GetBuff=(unsigned char*)malloc(sizeof(unsigned char)*(size));
+		//memset(GetBuff, '\0', size);  // GetBuff를 초기화해준다.
 		memcpy(GetBuff, chat_data->capp_data, size);
-		CString Msg;
-
-		Msg.Format(_T("%s"), GetBuff);
-
-		this->mp_aUpperLayer[0]->Receive((unsigned char*)Msg.GetBuffer(0));
+		this->mp_aUpperLayer[0]->Receive(GetBuff);
 		return true;
 	}else {
 		if (chat_data->capp_type == 0x01) {
-			FrameSeq *FirstFrame = new FrameSeq;
-			FirstFrame->seq = 0;
-			(FirstFrame->data).Format(_T("%s"), chat_data->capp_data);
-			FirstFrame->next = nullptr;
-			totalLength = chat_data->capp_totlen;
-			Head = FirstFrame;
+			add(chat_data->capp_data, chat_data->capp_sequence);
+			totalLength = chat_data->capp_totlen + 1;
 			return true;
 		}
 		else if (chat_data->capp_type == 0x02) {
@@ -114,12 +118,19 @@ BOOL CChatAppLayer::Receive(unsigned char* ppayload)
 			return true;
 		}
 		else {
-			CString mergeMsg="";
+			unsigned char* GetBuff = (unsigned char*)malloc(totalLength);
+			//memset(GetBuff, '\0', totalLength);  // GetBuff를 초기화해준다.
 			int i = 0;
 			for (FrameSeq *_head = Head; _head != nullptr; i++, _head = _head->next) {
-				mergeMsg += _head->data;
+				memcpy(GetBuff + (i * CHAR_DATA_MAX_SIZE), _head->data, CHAR_DATA_MAX_SIZE);
 			}
-			mp_aUpperLayer[0]->Receive((unsigned char*)mergeMsg.GetBuffer(0));
+			if (totalLength != (i * CHAR_DATA_MAX_SIZE) + (chat_data->capp_totlen))return false;		//모든 frame이 잘 들어왔나 확인
+			memcpy(GetBuff + (i * CHAR_DATA_MAX_SIZE), chat_data->capp_data, chat_data->capp_totlen);
+			GetBuff[totalLength-1] = '\0';
+			CString Msg;
+			Msg.Format(_T("%s"), GetBuff);
+			AfxMessageBox(Msg);
+			mp_aUpperLayer[0]->Receive((unsigned char*)Msg.GetBuffer(0));
 			deleteList();
 			return true;
 		}

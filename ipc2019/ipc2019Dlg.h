@@ -78,6 +78,7 @@ private:
 	LRESULT			OnRegAckMsg(WPARAM wParam, LPARAM lParam);
 
 	BOOL			m_bSendReady;
+	CString			strPathName;
 
 	// Object App
 	CChatAppLayer* m_ChatApp;
@@ -101,4 +102,5 @@ public:
 	CEdit m_editSrc;
 	UCHAR m_ucSrcAddr[6];
 	UCHAR m_ucDstAddr[6];
+	afx_msg void OnBnClickedButtonSelFile();
 };

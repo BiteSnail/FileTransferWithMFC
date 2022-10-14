@@ -22,8 +22,10 @@
 #define IDC_CHECK1                      1006
 #define IDC_CHECK_TOALL                 1006
 #define IDC_EDIT4                       1007
+#define IDC_EDIT_FILE_PATH              1007
 #define IDC_EDIT5                       1008
 #define IDC_BUTTON1                     1009
+#define IDC_BUTTON_SEL_FILE             1009
 #define IDC_BUTTON2                     1010
 #define IDC_COMBO1                      1011
 #define IDC_COMBO_ADAPTER_LIST          1011

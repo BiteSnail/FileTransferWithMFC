@@ -121,6 +121,7 @@ BEGIN_MESSAGE_MAP(Cipc2019Dlg, CDialogEx)
 	
 	ON_BN_CLICKED(IDC_CHECK_TOALL, &Cipc2019Dlg::OnBnClickedCheckToall)
 	ON_CBN_SELCHANGE(IDC_COMBO_ADAPTER_LIST, &Cipc2019Dlg::OnCbnSelchangeComboAdapterList)
+	ON_BN_CLICKED(IDC_BUTTON_SEL_FILE, &Cipc2019Dlg::OnBnClickedButtonSelFile)
 END_MESSAGE_MAP()
 
 
@@ -462,4 +463,20 @@ void Cipc2019Dlg::OnCbnSelchangeComboAdapterList()
 	memcpy(m_ucSrcAddr, m_Network->SetAdapter(m_adapterList.GetCurSel()),6);
 	UctoS(m_ucSrcAddr, m_unSrcAddr);
 	m_editSrc.SetWindowTextA(m_unSrcAddr);
+}
+
+
+void Cipc2019Dlg::OnBnClickedButtonSelFile()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	CString str = _T("All files(*.*)|*.*|"); // 모든 파일 표시
+	// _T("Excel 파일 (*.xls, *.xlsx) |*.xls; *.xlsx|"); 와 같이 확장자를 제한하여 표시할 수 있음
+	CFileDialog dlg(TRUE, _T("*.dat"), NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, str, this);
+
+	if (dlg.DoModal() == IDOK)
+	{
+		strPathName = dlg.GetPathName();
+		// 파일 경로를 가져와 사용할 경우, Edit Control에 값 저장
+		SetDlgItemText(IDC_EDIT_FILE_PATH, strPathName);
+	}
 }

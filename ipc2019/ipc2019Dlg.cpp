@@ -491,20 +491,23 @@ void Cipc2019Dlg::OnBnClickedButtonSelFile()
 void Cipc2019Dlg::OnBnClickedButtonSendFile()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
-	CFile file;
+	CFile file, output;
 	file.Open(strPathName, CFile::modeRead);
+	output.Open(_T(file.GetFileName()), CFile::modeCreate | CFile::modeWrite);
 	CArchive ar(&file, CArchive::load);
 	unsigned char buffer[1500];
 	CString a;
-	a.Format("%d", file.GetLength());
+	a.Format(_T("[%s] : %d"), file.GetFileName(), file.GetLength());
 	AfxMessageBox(a);
 	m_progressFile.SetRange(0, file.GetLength()/1488);
 	int i = 0;
 	while (ar.Read(buffer, 1488)) {
 		m_progressFile.SetPos(i);
 		i++;
+		output.Write(buffer, 1488);
 	}
 	ar.Close();
 	file.Close();
+	output.Close();
 
 }

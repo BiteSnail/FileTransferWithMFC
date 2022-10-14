@@ -21,7 +21,7 @@ class CChatAppLayer
 private:
 	unsigned short totalLength;
 	struct FrameSeq	{
-		unsigned char data[1496];
+		unsigned char* data;
 		unsigned char seq;
 		FrameSeq* next;
 	};

@@ -12,6 +12,7 @@
 
 #include "BaseLayer.h"
 #include "pch.h"
+#include<iostream>
 #define CHAT_MAX_DATA 1496
 
 class CChatAppLayer
@@ -20,7 +21,7 @@ class CChatAppLayer
 private:
 	unsigned short totalLength;
 	struct FrameSeq	{
-		CString data;
+		unsigned char *data;
 		unsigned char seq;
 		FrameSeq* next;
 	};
@@ -28,6 +29,7 @@ private:
 	void	add_after(FrameSeq* prev, unsigned char* data, unsigned char seq);
 	bool	seq_compare(FrameSeq* p, unsigned char seq);
 	void	add(unsigned char*data, unsigned char seq);
+	void	add_first(unsigned char* data, unsigned char seq);
 	void	make_frame(unsigned char* ppayoad, unsigned short nlength,unsigned char type, int seq);
 	void	deleteList();
 

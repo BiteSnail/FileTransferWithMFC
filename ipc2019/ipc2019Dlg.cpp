@@ -7,7 +7,6 @@
 #include "ipc2019.h"
 #include "ipc2019Dlg.h"
 #include "afxdialogex.h"
-#include <iostream>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -495,7 +494,7 @@ void Cipc2019Dlg::OnBnClickedButtonSendFile()
 	file.Open(strPathName, CFile::modeRead);
 	output.Open(_T(file.GetFileName()), CFile::modeCreate | CFile::modeWrite);
 	CArchive ar(&file, CArchive::load);
-	unsigned char buffer[1500];
+	unsigned char buffer[1488];
 	CString a;
 	a.Format(_T("[%s] : %d"), file.GetFileName(), file.GetLength());
 	AfxMessageBox(a);

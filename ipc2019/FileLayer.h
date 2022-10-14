@@ -16,11 +16,15 @@ class CFileLayer
 	: public CBaseLayer
 {
 public:
+	void	SetFileInfo(CFile& file);
 	BOOL	Receive();
 	BOOL	Send(unsigned char* ppayload, int nlength);
 
 	CFileLayer(char* pName);
-
+	typedef struct _FILE_INFO {
+		unsigned long totallength;
+		unsigned char filename[512];
+	}FILE_INFO, * PFILE_INFO;
 	typedef struct _FILE_HEADER {
 		unsigned long fapp_totlen; //4
 		unsigned short fapp_type; //2

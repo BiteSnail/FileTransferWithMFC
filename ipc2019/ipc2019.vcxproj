@@ -189,6 +189,7 @@
     <ClInclude Include="BaseLayer.h" />
     <ClInclude Include="ChatAppLayer.h" />
     <ClInclude Include="FileLayer.h" />
+    <ClInclude Include="FileTransLayer.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="ipc2019.h" />
     <ClInclude Include="ipc2019Dlg.h" />
@@ -205,6 +206,7 @@
     <ClCompile Include="ChatAppLayer.cpp" />
     <ClCompile Include="EthernetLayer.cpp" />
     <ClCompile Include="FileLayer.cpp" />
+    <ClCompile Include="FileTransLayer.cpp" />
     <ClCompile Include="ipc2019.cpp" />
     <ClCompile Include="ipc2019Dlg.cpp" />
     <ClCompile Include="LayerManager.cpp" />

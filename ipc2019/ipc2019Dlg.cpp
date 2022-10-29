@@ -491,11 +491,11 @@ void Cipc2019Dlg::OnBnClickedButtonSendFile()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 	CFile file, output;
+	unsigned char buffer[1488];
+	CString a;
 	file.Open(strPathName, CFile::modeRead);
 	output.Open(_T(file.GetFileName()), CFile::modeCreate | CFile::modeWrite);
 	CArchive ar(&file, CArchive::load);
-	unsigned char buffer[1488];
-	CString a;
 	a.Format(_T("[%s] : %d"), file.GetFileName(), file.GetLength());
 	AfxMessageBox(a);
 	m_progressFile.SetRange(0, file.GetLength()/1488);

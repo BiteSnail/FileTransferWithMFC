@@ -79,7 +79,7 @@ Cipc2019Dlg::Cipc2019Dlg(CWnd* pParent /*=nullptr*/)
 	m_LayerMgr.AddLayer(this);
 
 	// 레이어를 연결한다. (레이어 생성)
-	m_LayerMgr.ConnectLayers("Network ( *Ethernet ( *ChatApp ( *ChatDlg ) ) )");
+	m_LayerMgr.ConnectLayers("Network ( *Ethernet ( *ChatApp ( *ChatDlg ) *FileTrans ( *ChatDlg ) ) )");
 
 	m_ChatApp = (CChatAppLayer*)m_LayerMgr.GetLayer("ChatApp");
 	m_Network = (CNILayer*)m_LayerMgr.GetLayer("Network");

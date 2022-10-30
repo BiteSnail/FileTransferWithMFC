@@ -15,5 +15,6 @@
 #include "EthernetLayer.h"
 #include "FileLayer.h"
 #include "NetworkInterfaceLayer.h"
+#include "FileTransLayer.h"
 
 #endif //PCH_H

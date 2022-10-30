@@ -15,6 +15,7 @@ class FileTransLayer :
 {
     CString FilePath;
     CProgressCtrl* mPro;
+    CFile WriteFile;
 public:
     FileTransLayer(char *name);
     ~FileTransLayer();

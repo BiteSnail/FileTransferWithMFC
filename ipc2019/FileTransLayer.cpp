@@ -21,6 +21,21 @@ BOOL FileTransLayer::Send(unsigned char * ppayload, int nlength) {
 }
 
 BOOL FileTransLayer::Receive(unsigned char* frame) {
+	PFILE_APP data = (PFILE_APP)frame;
+	
+	if (data->fapp_type == FILE_INFO) {
+		CString file_name;
+		file_name.Format(_T("%s"), data->fapp_data);
+		WriteFile.Open(file_name, CFile::modeCreate | CFile::modeWrite);
+		WriteFile.SetLength(data->fapp_totlen);
+	}
+	else if (data->fapp_type == FILE_MORE) {
+
+	}
+	else {
+		WriteFile.Close();
+	}
+
 	return true;
 }
 
@@ -52,7 +67,7 @@ UINT FileTransLayer::FILE_SEND(LPVOID pParam) {
 	pFL->mPro->SetRange(0, totallength / MAX_APP_DATA);
 	
 	pFL->SetHeader(totallength, FILE_INFO, seq,(unsigned char*)(SendFile.GetFileName().GetBuffer(0)));
-	pFL->Send((unsigned char*)&(pFL->mHeader), SIZE_FILE_HEADER + MAX_APP_DATA);
+	pFL->Send((unsigned char*)&(pFL->mHeader), SIZE_FILE_HEADER + SendFile.GetFileName().GetLength()+1);
 	
 	while (read_file.Read(buffer, MAX_APP_DATA)) {
 		pFL->SetHeader(totallength > MAX_APP_DATA ? MAX_APP_DATA : totallength, FILE_MORE, ++seq, buffer);
@@ -63,6 +78,9 @@ UINT FileTransLayer::FILE_SEND(LPVOID pParam) {
 	
 	pFL->SetHeader(0, FILE_LAST, ++seq, (unsigned char*)"aaaaaaaa");
 	pFL->Send((unsigned char*)&(pFL->mHeader), SIZE_FILE_HEADER + 8);
+
+	SendFile.Close();
+	read_file.Close();
 
 
 	return 0;

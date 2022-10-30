@@ -70,21 +70,21 @@ void CFileTransLayer::add(unsigned char* data, unsigned char seq) {
 	add_after(q, data, seq);
 }
 
-
 BOOL CFileTransLayer::Receive(unsigned char* ppayload)
 {
 	LPFILE_APP file_data = (LPFILE_APP)ppayload;
+
+	CString a = _T("");
+	a.Format(_T("%s"), file_data->fapp_msg_type);
+	CFile file;
 
 	if (file_data->fapp_type == 0x00)
 	{
 		unsigned char size = file_data->fapp_totlen;
 		unsigned char GetBuff[MAX_APP_DATA];
 		memset(GetBuff, '\0', MAX_APP_DATA);  // GetBuff를 초기화해준다.
-
 		memcpy(GetBuff, file_data->fapp_data, size);
-		CString a = _T("");
-		a.Format(_T("%s"), file_data->fapp_msg_type);
-		CFile file;
+		//파일 열고 저장
 		file.Open(a, CFile::modeCreate | CFile::modeWrite, NULL);
 		file.Write(GetBuff, size);
 		file.Close();
@@ -103,6 +103,10 @@ BOOL CFileTransLayer::Receive(unsigned char* ppayload)
 			FirstFrame->next = nullptr;
 			totalLength = file_data->fapp_totlen;
 			Head = FirstFrame;
+
+			//파일 생성
+			file.Open(a, CFile::modeCreate, NULL);
+			file.Close();
 			return true;
 		}
 		else if (file_data->fapp_type == 0x02) {
@@ -115,7 +119,10 @@ BOOL CFileTransLayer::Receive(unsigned char* ppayload)
 			for (FrameSeq* _head = Head; _head != nullptr; i++, _head = _head->next) {
 				mergeMsg += _head->data;
 			}
-			mp_aUpperLayer[0]->Receive((unsigned char*)mergeMsg.GetBuffer(0));
+			file.Open(a, CFile::modeWrite, NULL);
+			file.Write(mergeMsg, mergeMsg.GetLength());
+			file.Close();
+			/*mp_aUpperLayer[0]->Receive((unsigned char*)mergeMsg.GetBuffer(0));*/
 			deleteList();
 			return true;
 		}

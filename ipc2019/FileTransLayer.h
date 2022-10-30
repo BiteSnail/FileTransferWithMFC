@@ -14,6 +14,7 @@ class FileTransLayer :
     public CBaseLayer
 {
     CString FilePath;
+    CProgressCtrl* mPro;
 public:
     FileTransLayer(char *name);
     ~FileTransLayer();
@@ -31,6 +32,8 @@ public:
         unsigned long seq_num,
         unsigned char* data
     );
+
+    void SetProgressBar(CProgressCtrl* p);
 
     typedef struct _FILE_APP {
         unsigned long   fapp_totlen;

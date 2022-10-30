@@ -17,7 +17,7 @@ FileTransLayer::~FileTransLayer() {
 }
 
 BOOL FileTransLayer::Send(unsigned char * ppayload, int nlength) {
-	return ((CEthernetLayer*)(this->GetUnderLayer()))->Send((unsigned char*)&mHeader, nlength + CHAT_HEADER_SIZE, 0x2090);
+	return ((CEthernetLayer*)(this->GetUnderLayer()))->Send((unsigned char*)&mHeader, nlength, 0x2090);
 }
 
 BOOL FileTransLayer::Receive(unsigned char* frame) {
@@ -36,6 +36,10 @@ void FileTransLayer::SetHeader(
 	memcpy(mHeader.fapp_data, data, len > MAX_APP_DATA ? MAX_APP_DATA : len);
 }
 
+void FileTransLayer::SetProgressBar(CProgressCtrl* p) {
+	mPro = p;
+}
+
 UINT FileTransLayer::FILE_SEND(LPVOID pParam) {
 	FileTransLayer* pFL = (FileTransLayer*)pParam;
 	CFile SendFile;
@@ -44,18 +48,17 @@ UINT FileTransLayer::FILE_SEND(LPVOID pParam) {
 	unsigned int seq = 0;
 	SendFile.Open(pFL->GetFilePath(), CFile::modeRead); //open file for sending
 	totallength = SendFile.GetLength();
-
 	CArchive read_file(&SendFile, CArchive::load);
-
-	PFILE_APP header = &(pFL->mHeader);
-
+	pFL->mPro->SetRange(0, totallength / MAX_APP_DATA);
+	
 	pFL->SetHeader(totallength, FILE_INFO, seq,(unsigned char*)(SendFile.GetFileName().GetBuffer(0)));
 	pFL->Send((unsigned char*)&(pFL->mHeader), SIZE_FILE_HEADER + MAX_APP_DATA);
 	
 	while (read_file.Read(buffer, MAX_APP_DATA)) {
 		pFL->SetHeader(totallength > MAX_APP_DATA ? MAX_APP_DATA : totallength, FILE_MORE, ++seq, buffer);
-		pFL->Send((unsigned char*)&(pFL->mHeader), SIZE_FILE_HEADER + totallength > MAX_APP_DATA ? MAX_APP_DATA : totallength);
+		pFL->Send((unsigned char*)&(pFL->mHeader), SIZE_FILE_HEADER + (totallength > MAX_APP_DATA ? MAX_APP_DATA : totallength));
 		totallength -= MAX_APP_DATA;
+		pFL->mPro->SetPos(seq);
 	}
 	
 	pFL->SetHeader(0, FILE_LAST, ++seq, (unsigned char*)"aaaaaaaa");

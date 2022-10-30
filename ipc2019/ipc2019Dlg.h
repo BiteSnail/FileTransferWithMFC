@@ -84,6 +84,7 @@ private:
 	CChatAppLayer* m_ChatApp;
 	CEthernetLayer* m_Ethernet;
 	CNILayer* m_Network;
+	FileTransLayer* m_File;
 
 	// Implementation
 	UINT			m_wParam;

@@ -84,6 +84,8 @@ Cipc2019Dlg::Cipc2019Dlg(CWnd* pParent /*=nullptr*/)
 	m_ChatApp = (CChatAppLayer*)m_LayerMgr.GetLayer("ChatApp");
 	m_Network = (CNILayer*)m_LayerMgr.GetLayer("Network");
 	m_Ethernet = (CEthernetLayer*)m_LayerMgr.GetLayer("Ethernet");
+	m_File = (FileTransLayer*)m_LayerMgr.GetLayer("FileTrans");
+
 	//Protocol Layer Setting
 }
 
@@ -161,6 +163,7 @@ BOOL Cipc2019Dlg::OnInitDialog()
 	SetRegstryMessage();
 	SetDlgState(IPC_INITIALIZING);
 	SetAdapterList();
+	m_File->SetProgressBar(&m_progressFile);
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
@@ -482,6 +485,7 @@ void Cipc2019Dlg::OnBnClickedButtonSelFile()
 		strPathName = dlg.GetPathName();
 		// 파일 경로를 가져와 사용할 경우, Edit Control에 값 저장
 		SetDlgItemText(IDC_EDIT_FILE_PATH, strPathName);
+		m_File->SetFilePath(strPathName);
 	}
 
 }
@@ -508,5 +512,5 @@ void Cipc2019Dlg::OnBnClickedButtonSendFile()
 	//ar.Close();
 	//file.Close();
 	//output.Close();
-
+	AfxBeginThread(m_File->FILE_SEND, m_File);
 }

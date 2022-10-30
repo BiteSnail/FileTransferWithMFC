@@ -30,7 +30,8 @@ BOOL FileTransLayer::Receive(unsigned char* frame) {
 		WriteFile.SetLength(data->fapp_totlen);
 	}
 	else if (data->fapp_type == FILE_MORE) {
-
+		WriteFile.Seek(data->fapp_seq_num * MAX_APP_DATA, CFile::begin);
+		WriteFile.Write(data->fapp_data, MAX_APP_DATA);
 	}
 	else {
 		WriteFile.Close();
@@ -60,7 +61,7 @@ UINT FileTransLayer::FILE_SEND(LPVOID pParam) {
 	CFile SendFile;
 	unsigned long totallength;
 	unsigned char buffer[MAX_APP_DATA];
-	unsigned int seq = 0;
+	unsigned int seq = -1;
 	SendFile.Open(pFL->GetFilePath(), CFile::modeRead); //open file for sending
 	totallength = SendFile.GetLength();
 	CArchive read_file(&SendFile, CArchive::load);

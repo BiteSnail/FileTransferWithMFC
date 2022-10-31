@@ -18,13 +18,33 @@ void CFileTransLayer::make_frame(unsigned char* ppayload, unsigned long nlength,
 	((CEthernetLayer*)(this->GetUnderLayer()))->Send((unsigned char*)&m_sFileApp, nlength + SIZE_FILE_HEADER, 0x2090);
 }
 
-BOOL CFileTransLayer::Send(unsigned char* ppayload, int nlength, CString strPath)
-{	
+void CFileTransLayer::SetFilePath(CString strPath)
+{
+	//파일 경로를 받아옴
+	//받아온 파일 경로에서 파일 이름 추출
 	CString strFileName;
 	strFileName = strPath.Right(strPath.GetLength() - strPath.ReverseFind('\\'));
+	unsigned char fName = new unsigned char[strFileName.GetLength + 1];
+	fName = strFileName;
+
+	CString a = _T("");
+	a.Format(_T("%s"), strFileName);
+
+	CFile file;
+	file.Open(a, CFile::modeRead, NULL);
+	int size = file.GetLength();
+	unsigned char* content = new unsigned char[size+1];
+	ZeroMemory(content,size);
+	file.Read(content, size);	//파일 내용 읽기
+	Send(content, size, fName);
+	file.Close();
+}
+
+BOOL CFileTransLayer::Send(unsigned char* ppayload, int nlength, unsigned char strFileName)
+{
 	//message length가 1496bytes 보다 작으면, 바로 하위 레이어로 전달
 	if (nlength < MAX_APP_DATA) {
-		make_frame(ppayload, nlength, 0x00, 0, (unsigned char)strFileName.GetBuffer(0));
+		make_frame(ppayload, nlength, 0x00, 0, strFileName);
 		return TRUE;
 	}
 	//message length가 1496bytes 보다 큰 경우 단편화 작업...
@@ -33,15 +53,15 @@ BOOL CFileTransLayer::Send(unsigned char* ppayload, int nlength, CString strPath
 		int i = 0;	//몇 번 단편화 하는지 count 변수
 
 		//최초 단편화 된 frame을 만들어 하위 레이어로 전달
-		make_frame(ppayload, MAX_APP_DATA, 0x01, i, (unsigned char)strFileName.GetBuffer(0));
+		make_frame(ppayload, MAX_APP_DATA, 0x01, i,strFileName);
 		i++;
 
 		for (; nlength - (i * MAX_APP_DATA) > MAX_APP_DATA; i++, length -= (i * MAX_APP_DATA)) {
 			//처음과 끝 부분을 제외한 중간 부분 frame을 만들어 하위 레이어로 전달
-			make_frame(ppayload, MAX_APP_DATA, 0x02, i, (unsigned char)strFileName.GetBuffer(0));
+			make_frame(ppayload, MAX_APP_DATA, 0x02, i, strFileName);
 		}
 		//마지막 단편화 된 frame을 만들어 하위 레이어로 전달
-		make_frame(ppayload, length, 0x03, i, (unsigned char)strFileName.GetBuffer(0));
+		make_frame(ppayload, length, 0x03, i, strFileName);
 		return TRUE;
 	}
 	return FALSE;

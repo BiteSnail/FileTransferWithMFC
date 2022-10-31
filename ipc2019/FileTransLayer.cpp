@@ -42,14 +42,14 @@ void CFileTransLayer::SetFilePath(CString strPath)
 
 BOOL CFileTransLayer::Send(unsigned char* ppayload, int nlength, unsigned char strFileName)
 {
-	//message length가 1496bytes 보다 작으면, 바로 하위 레이어로 전달
+	//message length가 1488bytes 보다 작으면, 바로 하위 레이어로 전달
 	if (nlength < MAX_APP_DATA) {
 		make_frame(ppayload, nlength, 0x00, 0, strFileName);
 		return TRUE;
 	}
-	//message length가 1496bytes 보다 큰 경우 단편화 작업...
+	//message length가 1488bytes 보다 큰 경우 단편화 작업...
 	else {
-		int length = nlength - MAX_APP_DATA;	//최초 단편화 frame을 고려해 1496bytes 만큼 뺀다.
+		int length = nlength - MAX_APP_DATA;	//최초 단편화 frame을 고려해 1488bytes 만큼 뺀다.
 		int i = 0;	//몇 번 단편화 하는지 count 변수
 
 		//최초 단편화 된 frame을 만들어 하위 레이어로 전달
@@ -67,7 +67,7 @@ BOOL CFileTransLayer::Send(unsigned char* ppayload, int nlength, unsigned char s
 	return FALSE;
 }
 
-void CFileTransLayer::add_after(FrameSeq* prev, unsigned char* data, unsigned char seq) {
+void CFileTransLayer::add_after(FrameSeq* prev, unsigned char* data, unsigned long seq) {
 	FrameSeq* tmp = new FrameSeq;
 	(tmp->data).Format(_T("%s"), data);
 	tmp->seq = seq;
@@ -75,12 +75,12 @@ void CFileTransLayer::add_after(FrameSeq* prev, unsigned char* data, unsigned ch
 	prev->next = tmp;
 }
 
-bool CFileTransLayer::seq_compare(FrameSeq* p, unsigned char seq) {
+bool CFileTransLayer::seq_compare(FrameSeq* p, unsigned long seq) {
 	if (p->seq < seq)return true;
 	else return false;
 }
 
-void CFileTransLayer::add(unsigned char* data, unsigned char seq) {
+void CFileTransLayer::add(unsigned char* data, unsigned long seq) {
 	FrameSeq* p = Head;
 	FrameSeq* q = nullptr;
 	while (seq_compare(p, seq)) {

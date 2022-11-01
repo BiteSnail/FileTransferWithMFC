@@ -147,12 +147,14 @@ BOOL CFileTransLayer::Receive(unsigned char* ppayload)
 		}
 		else {
 			CString mergeMsg = "";
+			file.Open(fname, CFile::modeWrite, NULL);
 			int i = 0;
 			for (FrameSeq* _head = Head; _head != nullptr; i++, _head = _head->next) {
-				mergeMsg = mergeMsg + _head->data;
+				//mergeMsg = mergeMsg + _head->data;
+				mergeMsg = _head->data;
+				file.Seek(0, CFile::end);
+				file.Write(mergeMsg, mergeMsg.GetLength());
 			}
-			file.Open(fname, CFile::modeWrite, NULL);
-			file.Write(mergeMsg, mergeMsg.GetLength());
 			file.Close();
 			/*mp_aUpperLayer[0]->Receive((unsigned char*)mergeMsg.GetBuffer(0));*/
 			deleteList();

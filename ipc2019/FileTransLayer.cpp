@@ -35,6 +35,7 @@ BOOL FileTransLayer::Receive(unsigned char* frame) {
 	}
 	else {
 		WriteFile.Close();
+		AfxMessageBox(_T("ÆÄÀÏ µµÂø!"));
 	}
 
 	return true;

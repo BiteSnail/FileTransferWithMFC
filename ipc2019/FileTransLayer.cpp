@@ -31,7 +31,7 @@ BOOL FileTransLayer::Receive(unsigned char* frame) {
 	}
 	else if (data->fapp_type == FILE_MORE) {
 		WriteFile.Seek(data->fapp_seq_num * MAX_APP_DATA, CFile::begin);
-		WriteFile.Write(data->fapp_data, MAX_APP_DATA);
+		WriteFile.Write(data->fapp_data, data->fapp_totlen);
 	}
 	else {
 		WriteFile.Close();

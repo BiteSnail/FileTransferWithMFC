@@ -7,7 +7,6 @@
 #include "ipc2019.h"
 #include "ipc2019Dlg.h"
 #include "afxdialogex.h"
-#include <iostream>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -75,16 +74,18 @@ Cipc2019Dlg::Cipc2019Dlg(CWnd* pParent /*=nullptr*/)
 	//Protocol Layer Setting
 	m_LayerMgr.AddLayer(new CChatAppLayer("ChatApp"));
 	m_LayerMgr.AddLayer(new CEthernetLayer("Ethernet"));
-	m_LayerMgr.AddLayer(new CFileLayer("File"));
+	m_LayerMgr.AddLayer(new FileTransLayer("FileTrans"));
 	m_LayerMgr.AddLayer(new CNILayer("Network"));
 	m_LayerMgr.AddLayer(this);
 
 	// 레이어를 연결한다. (레이어 생성)
-	m_LayerMgr.ConnectLayers("Network ( *Ethernet ( *ChatApp ( *ChatDlg ) ) )");
+	m_LayerMgr.ConnectLayers("Network ( *Ethernet ( *ChatApp ( *ChatDlg ) *FileTrans ( *ChatDlg ) ) )");
 
 	m_ChatApp = (CChatAppLayer*)m_LayerMgr.GetLayer("ChatApp");
 	m_Network = (CNILayer*)m_LayerMgr.GetLayer("Network");
 	m_Ethernet = (CEthernetLayer*)m_LayerMgr.GetLayer("Ethernet");
+	m_File = (FileTransLayer*)m_LayerMgr.GetLayer("FileTrans");
+
 	//Protocol Layer Setting
 }
 
@@ -98,6 +99,7 @@ void Cipc2019Dlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_COMBO_ADAPTER_LIST, m_adapterList);
 	DDX_CBString(pDX, IDC_COMBO_ADAPTER_LIST, m_adapterName);
 	DDX_Control(pDX, IDC_EDIT_SRC, m_editSrc);
+	DDX_Control(pDX, IDC_PROGRESS_FILE_TRANSFER, m_progressFile);
 }
 
 // 레지스트리에 등록하기 위한 변수
@@ -121,6 +123,8 @@ BEGIN_MESSAGE_MAP(Cipc2019Dlg, CDialogEx)
 	
 	ON_BN_CLICKED(IDC_CHECK_TOALL, &Cipc2019Dlg::OnBnClickedCheckToall)
 	ON_CBN_SELCHANGE(IDC_COMBO_ADAPTER_LIST, &Cipc2019Dlg::OnCbnSelchangeComboAdapterList)
+	ON_BN_CLICKED(IDC_BUTTON_SEL_FILE, &Cipc2019Dlg::OnBnClickedButtonSelFile)
+	ON_BN_CLICKED(IDC_BUTTON_SEND_FILE, &Cipc2019Dlg::OnBnClickedButtonSendFile)
 END_MESSAGE_MAP()
 
 
@@ -159,6 +163,7 @@ BOOL Cipc2019Dlg::OnInitDialog()
 	SetRegstryMessage();
 	SetDlgState(IPC_INITIALIZING);
 	SetAdapterList();
+	m_File->SetProgressBar(&m_progressFile);
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
@@ -462,4 +467,50 @@ void Cipc2019Dlg::OnCbnSelchangeComboAdapterList()
 	memcpy(m_ucSrcAddr, m_Network->SetAdapter(m_adapterList.GetCurSel()),6);
 	UctoS(m_ucSrcAddr, m_unSrcAddr);
 	m_editSrc.SetWindowTextA(m_unSrcAddr);
+}
+
+
+void Cipc2019Dlg::OnBnClickedButtonSelFile()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	CString str = _T("All files(*.*)|*.*|"); // 모든 파일 표시
+
+	CFileDialog dlg(TRUE, _T("*.dat"), NULL,
+		OFN_HIDEREADONLY | 
+		OFN_OVERWRITEPROMPT
+		, str, this);
+
+	if (dlg.DoModal() == IDOK)
+	{
+		strPathName = dlg.GetPathName();
+		// 파일 경로를 가져와 사용할 경우, Edit Control에 값 저장
+		SetDlgItemText(IDC_EDIT_FILE_PATH, strPathName);
+		m_File->SetFilePath(strPathName);
+	}
+
+}
+
+
+void Cipc2019Dlg::OnBnClickedButtonSendFile()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	//CFile file, output;
+	//unsigned char buffer[1488];
+	//CString a;
+	//file.Open(strPathName, CFile::modeRead);
+	//output.Open(_T(file.GetFileName()), CFile::modeCreate | CFile::modeWrite);
+	//CArchive ar(&file, CArchive::load);
+	//a.Format(_T("[%s] : %d"), file.GetFileName(), file.GetLength());
+	//AfxMessageBox(a);
+	//m_progressFile.SetRange(0, file.GetLength()/1488);
+	//int i = 0;
+	//while (ar.Read(buffer, 1488)) {
+	//	m_progressFile.SetPos(i);
+	//	i++;
+	//	output.Write(buffer, 1488);
+	//}
+	//ar.Close();
+	//file.Close();
+	//output.Close();
+	AfxBeginThread(m_File->FILE_SEND, m_File);
 }

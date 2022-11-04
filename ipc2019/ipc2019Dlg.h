@@ -78,11 +78,13 @@ private:
 	LRESULT			OnRegAckMsg(WPARAM wParam, LPARAM lParam);
 
 	BOOL			m_bSendReady;
+	CString			strPathName;
 
 	// Object App
 	CChatAppLayer* m_ChatApp;
 	CEthernetLayer* m_Ethernet;
 	CNILayer* m_Network;
+	FileTransLayer* m_File;
 
 	// Implementation
 	UINT			m_wParam;
@@ -101,4 +103,7 @@ public:
 	CEdit m_editSrc;
 	UCHAR m_ucSrcAddr[6];
 	UCHAR m_ucDstAddr[6];
+	afx_msg void OnBnClickedButtonSelFile();
+	afx_msg void OnBnClickedButtonSendFile();
+	CProgressCtrl m_progressFile;
 };
